@@ -15,8 +15,7 @@ const port = 8070
 
 // TODO: 把内容里的所有文本节点抽取出来放到fulltext字段里
 // TODO: 处理 keyword
-
-app.post('/resources/zhihu', (req, res, next) => {
+function processWebArticle(type:any, req:any, res:any, next:any) {
     let requestBody = req.body.toString().split('\n')
     let from = requestBody[0]
     let title = requestBody[1]
@@ -32,7 +31,7 @@ app.post('/resources/zhihu', (req, res, next) => {
     let fulltext = title + ' ' + allText.join(' ')
     let client = new elasticsearch.Client({
         host: 'localhost:9200',
-        log: 'trace'
+        log: 'info'
     })
 
     client.index({
@@ -44,13 +43,20 @@ app.post('/resources/zhihu', (req, res, next) => {
             title: title,
             fulltext: fulltext,
             tags: tags,
-            type: "zhihu",
+            type: type,
             created: Date.now()
         }
     }).then(() => {
         res.status(200).send("发送成功")
         next()
     })
+}
+app.post('/resources/zhihu', (req, res, next) => {
+    processWebArticle('zhihu', req, res, next)
+})
+
+app.post('/resources/blog', (req, res, next) => {
+    processWebArticle('blog', req, res, next)
 })
 
 app.get('/resources/search', (req, res, next) => {
@@ -58,7 +64,7 @@ app.get('/resources/search', (req, res, next) => {
 
     let client = new elasticsearch.Client({
         host: 'localhost:9200',
-        log: 'trace'
+        log: 'info'
     })
     client.search({
         index: 'collection',
@@ -80,7 +86,7 @@ app.get('/resources/search', (req, res, next) => {
             let {fulltext, ...view} = el._source as any
             view.id = el._id
             view.highlight = el.highlight.fulltext[0]
-            return res
+            return view
         }))
         next()
     })

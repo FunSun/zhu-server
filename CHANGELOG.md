@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2018-09-25
+### Added
+- 增加了通用blog添加接口
+### Changed
+- 将zhihu接口和通用blog接口公用的逻辑抽出来
+
 ## [1.0.0] - 2018-09-23
 ### Added
 - 添加了版本管理和changelog
