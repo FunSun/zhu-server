@@ -35,7 +35,7 @@ function processWebArticle(type:any, req:any, res:any, next:any) {
     })
 
     client.index({
-        index: 'collection',
+        index: 'archive',
         type: '_doc',
         body: {
             from: from,
@@ -67,7 +67,7 @@ app.get('/resources/search', (req, res, next) => {
         log: 'info'
     })
     client.search({
-        index: 'collection',
+        index: 'archive',
         body: {
             "query": {
                 "query_string": {
