@@ -1,16 +1,20 @@
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
+import * as cors from 'cors'
 import * as _ from 'lodash'
 import * as elasticsearch from 'elasticsearch'
 const { getAllText } =  require('./lib')
 import {JSDOM} from 'jsdom'
+import { ResourceStore } from './stores'
+import { Link } from './models'
 
 const app = express()
 app.use(bodyParser.raw({
     inflate: true,
     limit: '100kb',
     type: '*/*'
-  }))
+}))
+app.use(cors())
 const port = 8070
 
 // TODO: 把内容里的所有文本节点抽取出来放到fulltext字段里
@@ -51,6 +55,7 @@ function processWebArticle(type:any, req:any, res:any, next:any) {
         next()
     })
 }
+  
 app.post('/resources/zhihu', (req, res, next) => {
     processWebArticle('zhihu', req, res, next)
 })
@@ -58,6 +63,19 @@ app.post('/resources/zhihu', (req, res, next) => {
 app.post('/resources/blog', (req, res, next) => {
     processWebArticle('blog', req, res, next)
 })
+
+app.post('/resources/link', (req, res, next) => {
+    let body = JSON.parse(req.body.toString()) as any
+    let rs = new ResourceStore("localhost:9200", "archive", "info")
+    rs.addLinks([new Link(body.title, body.url, body.favicon)]).then(() => {
+        res.status(200).send("")
+        next()
+    }).catch(() => {
+        res.status(500).send("")
+        next()
+    })
+})
+
 
 app.get('/resources/search', (req, res, next) => {
     let q = req.query.q
