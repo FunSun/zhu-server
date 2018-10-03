@@ -13,8 +13,51 @@ export class ResourceStore {
         this.index = index
     }
 
-    search(query: string, tags:Tag[], facet: {[key:string]:any}): Resource[] {
-        return null
+    async search(query: string, tags:Tag[], facet: {[key:string]:any}, sort?: string): Promise<Resource[]> {
+        console.log(query, tags, facet)
+
+        let q:any[] = []
+        if (query !== "") {
+            let mainQ = { "match": {"fulltext": query}}    
+            q.push(mainQ)
+        }
+        if (tags && tags.length > 0) {
+            let tagQ = {"terms": {"tags": _.map(tags, (o) => {return o.name})}}
+            q.push(tagQ)
+        }
+        if (facet && _.keys(facet).length > 0) {
+            let facetQ = _.map(facet, (v, k) => {
+                if (k==='from') {
+                    return {"match": {"from": v}}
+                }
+                return {"term": {k: v}} 
+            })
+            q.push(...facetQ)
+        }
+        
+        let result = await this.client.search({
+            index: this.index,
+            body: {
+                "query": {
+                    "bool": {
+                        "must": q
+                    }
+                },
+                "highlight": {
+                    "fields": {
+                        "fulltext": {}
+                    }
+                }
+            }
+        })
+        return _.map(result.hits.hits, (el) => {
+            let {fulltext, ...view} = el._source as any
+            view.id = el._id
+            if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {
+                view.highlight = el.highlight.fulltext[0]
+            }
+            return view
+        })
     }
 
     async addLinks(links: Link[]): Promise<Map<string, boolean>> {
@@ -40,5 +83,14 @@ export class ResourceStore {
             res.set(link.from, item.create.result?true: false)
             return res
         }, new Map<string, boolean>())
+    }
+
+    async linkExist(link:Link): Promise<boolean> {
+        let res = await this.client.exists({
+            index: this.index,
+            type: '_doc',
+            id: link.id
+        })
+        return res
     }
 }

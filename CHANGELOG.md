@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2018-10-03
+### Added
+- 增加了链接是否存在查询
+- 能够按tag查找
+- 能够按facet查找
+
 ## [1.3.0] - 2018-10-02
 ### Added
 - 增加了链接添加接口

@@ -6,7 +6,7 @@ import * as elasticsearch from 'elasticsearch'
 const { getAllText } =  require('./lib')
 import {JSDOM} from 'jsdom'
 import { ResourceStore } from './stores'
-import { Link } from './models'
+import { Link, Tag } from './models'
 
 const app = express()
 app.use(bodyParser.raw({
@@ -64,6 +64,20 @@ app.post('/resources/blog', (req, res, next) => {
     processWebArticle('blog', req, res, next)
 })
 
+app.get('/resources/link/exist', (req, res, next) => {
+    let url = req.query.url as string
+    console.log(`check if ${url} exist`)
+    let rs = new ResourceStore("localhost:9200", "archive", "info")
+    rs.linkExist(new Link("", url)).then((exist) => {
+        if (exist) {
+            res.status(201).send("")
+        } else {
+            res.status(201).send("")
+        }
+        next()
+    })
+})
+
 app.post('/resources/link', (req, res, next) => {
     let body = JSON.parse(req.body.toString()) as any
     let rs = new ResourceStore("localhost:9200", "archive", "info")
@@ -76,38 +90,28 @@ app.post('/resources/link', (req, res, next) => {
     })
 })
 
-
 app.get('/resources/search', (req, res, next) => {
-    let q = req.query.q
-
-    let client = new elasticsearch.Client({
-        host: 'localhost:9200',
-        log: 'info'
-    })
-    client.search({
-        index: 'archive',
-        body: {
-            "query": {
-                "query_string": {
-                    "default_field": "fulltext",
-                    "query": q
-                }
-              },
-            "highlight": {
-                "fields": {
-                    "fulltext": {}
-                }
-            }
+    let q = req.query.q as string
+    let tokens = _.filter(_.split(q, " "), (o)=> {return !!o}) as string[]
+    let normalTokens:string[] = []
+    let tags: Tag[] = []
+    let facet:{[key:string]:string} = {}
+    _.each(tokens, (token)=> {
+        if (!_.includes(token, ":")) {
+            normalTokens.push(token)
+        } else if (_.startsWith(token, "tags:")) {
+            tags.push(..._.map(_.split(_.trimStart(token, "tags:"), ","), (o) => {return new Tag(o)}))
+        } else {
+            let [k, v] = _.split(token, ":")
+            facet[k] = v
         }
-    }).then((result) => {
-        res.status(200).send(_.map(result.hits.hits, (el) => {
-            let {fulltext, ...view} = el._source as any
-            view.id = el._id
-            view.highlight = el.highlight.fulltext[0]
-            return view
-        }))
-        next()
     })
+    let rs = new ResourceStore("localhost:9200", "archive", "debug")
+    rs.search(normalTokens.join(" "), tags, facet).then((views) => {
+        res.status(200).send(views)
+    })
+
+
 
 })
 
