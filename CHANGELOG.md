@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2018-10-04
+### Added
+- 增加了tag编辑api
+
 ## [1.4.0] - 2018-10-03
 ### Added
 - 增加了链接是否存在查询

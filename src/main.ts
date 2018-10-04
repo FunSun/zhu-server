@@ -3,10 +3,10 @@ import * as bodyParser from 'body-parser'
 import * as cors from 'cors'
 import * as _ from 'lodash'
 import * as elasticsearch from 'elasticsearch'
-const { getAllText } =  require('./lib')
+import { getAllText, stringArrayToTags } from './lib'
 import {JSDOM} from 'jsdom'
 import { ResourceStore } from './stores'
-import { Link, Tag } from './models'
+import { Resource, Link, Tag } from './models'
 
 const app = express()
 app.use(bodyParser.raw({
@@ -110,9 +110,18 @@ app.get('/resources/search', (req, res, next) => {
     rs.search(normalTokens.join(" "), tags, facet).then((views) => {
         res.status(200).send(views)
     })
+})
 
-
-
+app.post('/resources/tags', (req, res, next) => {
+    let query = JSON.parse(req.body.toString())
+    let rs = new ResourceStore("localhost:9200", "archive", "debug")
+    let r = new Resource()
+    r.id = query.id
+    r.tags = stringArrayToTags(query.tags)
+    rs.updateTags(r).then(() => {
+        res.status(200).send()
+        next()
+    })
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))

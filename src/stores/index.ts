@@ -93,4 +93,17 @@ export class ResourceStore {
         })
         return res
     }
+
+    async updateTags(resouce: Resource):Promise<any> {
+        await this.client.update({
+            index: this.index,
+            type: '_doc',
+            id: resouce.id,
+            body: {
+              doc: {
+                tags: _.map(resouce.tags, (o)=> {return o.toString()}),
+              }
+            }
+        })
+    }
 }

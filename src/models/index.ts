@@ -18,13 +18,13 @@ export class Tag {
     }
 }
 
-export interface Resource {
+export class Resource {
     id: string
     tags: Tag[]
     created: Date
 }
 
-export interface FamousResource extends Resource {
+export class FamousResource extends Resource {
     from: string
 }
 

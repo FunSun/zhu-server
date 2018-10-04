@@ -1,4 +1,6 @@
 import { JSDOM } from 'jsdom'
+import { Tag } from './models'
+import * as _ from 'lodash'
 
 export function getAllText(dom:JSDOM) {
     let window = dom.window
@@ -17,4 +19,10 @@ export function getAllText(dom:JSDOM) {
         textNodes.push(node.nodeValue)
     }
     return textNodes
+}
+
+export function stringArrayToTags(strArr:string[]): Tag[] {
+    return _.map(strArr, (o) => {
+        return new Tag(o)
+    })
 }
