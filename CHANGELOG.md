@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2018-10-05
+##Added
+- 增加了搜索分页的功能
+
 ## [1.5.1] - 2018-10-05
+##Fixed
 - 修复了exist接口存在缓存返回304的情况
 
 ## [1.5.0] - 2018-10-04

@@ -13,7 +13,7 @@ export class ResourceStore {
         this.index = index
     }
 
-    async search(query: string, tags:Tag[], facet: {[key:string]:any}, sort?: string): Promise<Resource[]> {
+    async search(query: string, tags:Tag[], facet: {[key:string]:any}, offset:number, limit:number, sort?: string): Promise<Resource[]> {
         console.log(query, tags, facet)
 
         let q:any[] = []
@@ -47,7 +47,9 @@ export class ResourceStore {
                     "fields": {
                         "fulltext": {}
                     }
-                }
+                },
+                "from": offset,
+                "size": limit
             }
         })
         return _.map(result.hits.hits, (el) => {

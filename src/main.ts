@@ -100,6 +100,8 @@ app.post('/resources/link', (req, res, next) => {
 
 app.get('/resources/search', (req, res, next) => {
     let q = req.query.q as string
+    let offset = req.query.offset?parseInt(req.query.offset as string):0
+    let limit = req.query.limit?parseInt(req.query.limit as string):24
     let tokens = _.filter(_.split(q, " "), (o)=> {return !!o}) as string[]
     let normalTokens:string[] = []
     let tags: Tag[] = []
@@ -115,7 +117,7 @@ app.get('/resources/search', (req, res, next) => {
         }
     })
     let rs = new ResourceStore("localhost:9200", "archive", "debug")
-    rs.search(normalTokens.join(" "), tags, facet).then((views) => {
+    rs.search(normalTokens.join(" "), tags, facet, offset, limit).then((views) => {
         res.status(200).send(views)
     })
 })
