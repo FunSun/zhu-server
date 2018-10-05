@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2018-10-05
+- 修复了exist接口存在缓存返回304的情况
+
 ## [1.5.0] - 2018-10-04
 ### Added
 - 增加了tag编辑api

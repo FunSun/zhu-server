@@ -9,6 +9,7 @@ import { ResourceStore } from './stores'
 import { Resource, Link, Tag } from './models'
 
 const app = express()
+app.disable('etag')
 app.use(bodyParser.raw({
     inflate: true,
     limit: '100kb',
@@ -70,9 +71,11 @@ app.get('/resources/link/exist', (req, res, next) => {
     let rs = new ResourceStore("localhost:9200", "archive", "info")
     rs.linkExist(new Link("", url)).then((exist) => {
         if (exist) {
+            console.log(201)
             res.status(201).send("")
         } else {
-            res.status(201).send("")
+            console.log(200)
+            res.status(200).send("")
         }
         next()
     })
@@ -81,8 +84,13 @@ app.get('/resources/link/exist', (req, res, next) => {
 app.post('/resources/link', (req, res, next) => {
     let body = JSON.parse(req.body.toString()) as any
     let rs = new ResourceStore("localhost:9200", "archive", "info")
-    rs.addLinks([new Link(body.title, body.url, body.favicon)]).then(() => {
-        res.status(200).send("")
+    rs.addLinks([new Link(body.title, body.url, body.favicon)]).then((result) => {
+        if (result.get(body.url)) {
+            console.log(`Successful stored ${body.title} <${body.url}>`)
+            res.status(200).send("")
+        } else {
+            res.status(500).send("")
+        }
         next()
     }).catch(() => {
         res.status(500).send("")
