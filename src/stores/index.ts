@@ -1,4 +1,4 @@
-import { Tag, Resource, Link, Types } from '../models'
+import { Tag, Resource, Link, Types, Comment, Article } from '../models'
 import * as elasticsearch from 'elasticsearch'
 import * as _ from 'lodash'
 
@@ -14,7 +14,7 @@ export class ResourceStore {
     }
 
     async search(query: string, tags:Tag[], facet: {[key:string]:any}, offset:number, limit:number, sort?: string): Promise<Resource[]> {
-        console.log(query, tags, facet)
+        logger("service search").debug(query, tags, facet)
 
         let q:any[] = []
         if (query !== "") {
@@ -30,7 +30,7 @@ export class ResourceStore {
                 if (k==='from') {
                     return {"match": {"from": v}}
                 }
-                return {"term": {k: v}} 
+                return {"term": {[k]: v}} 
             })
             q.push(...facetQ)
         }
@@ -68,7 +68,7 @@ export class ResourceStore {
             return [{create: {_index: this.index, _type: '_doc', '_id': link.id}}, {
                 from: link.from,
                 title: link.title,
-                tags: _.map(link.tags, (o)=> {return o.toString()}),
+                tags: tagsToStringArray(link.tags),
                 fulltext: link.title,
                 type: Types.Link,
                 favicon: link.favicon,
@@ -108,4 +108,39 @@ export class ResourceStore {
             }
         })
     }
+
+    async addComment(comment:Comment):Promise<any> {
+        let res = await this.client.index({
+            index: this.index,
+            type: '_doc',
+            body: {
+                content: comment.content,
+                fulltext: comment.content,
+                tags: tagsToStringArray(comment.tags),                
+                type: "comment",
+                created: comment.created
+            }
+        })
+        logger("service addComment").debug(res)
+    }
+
+    async addArticle(article:Article): Promise<any> {
+        let res = await this.client.index({
+            index: this.index,
+            type: '_doc',
+            body: {
+                title: article.title,
+                content: article.content,
+                fulltext: article.title + " " + article.content,
+                tags: tagsToStringArray(article.tags),
+                type: "article",
+                created: article.created
+            }
+        })
+        logger("service addArticle").debug(res)
+    }
+}
+
+function tagsToStringArray(tags:Tag[]):string[] {
+    return _.map(tags, (o)=> {return o.toString()})
 }

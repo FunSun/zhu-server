@@ -6,12 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2018-10-06
+###  Added
+- 增加了comment和article类型以及对应的接口
+- 同意了打印日志的方式
+
 ## [1.6.0] - 2018-10-05
-##Added
+### Added
 - 增加了搜索分页的功能
 
 ## [1.5.1] - 2018-10-05
-##Fixed
+### Fixed
 - 修复了exist接口存在缓存返回304的情况
 
 ## [1.5.0] - 2018-10-04

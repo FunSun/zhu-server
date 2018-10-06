@@ -57,6 +57,26 @@ export class Link implements FamousResource {
 
 export class ZhihuAnswer extends ArchivedResource {}
 
+export class Comment extends Resource {
+    constructor(content:string, tags?:Tag[]) {
+        super()
+        this.content = content
+        this.tags = tags || []
+    }
+    content: string
+}
+
+export class Article extends Resource {
+    constructor(title:string, content:string, tags?:Tag[]) {
+        super()
+        this.title = title
+        this.content = content
+        this.tags = tags || []
+    }
+    title: string
+    content: string
+}
+
 function hashCode(s: string): string {
     return crypto.createHash('md5').update(s).digest('base64')
 }

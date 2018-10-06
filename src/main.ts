@@ -1,3 +1,7 @@
+// logger as a builtin
+import {replaceConsoleLog} from './logger'
+replaceConsoleLog()
+
 import * as express from 'express'
 import * as bodyParser from 'body-parser'
 import * as cors from 'cors'
@@ -6,9 +10,16 @@ import * as elasticsearch from 'elasticsearch'
 import { getAllText, stringArrayToTags } from './lib'
 import {JSDOM} from 'jsdom'
 import { ResourceStore } from './stores'
-import { Resource, Link, Tag } from './models'
+import { Resource, Link, Tag, Comment, Article } from './models'
+
+
+let rs = new ResourceStore("localhost:9200", "archive", "error")
 
 const app = express()
+app.use((req, res, next) => {
+    next()
+    logger("Web").info(req.path, res.statusCode)
+})
 app.disable('etag')
 app.use(bodyParser.raw({
     inflate: true,
@@ -67,14 +78,11 @@ app.post('/resources/blog', (req, res, next) => {
 
 app.get('/resources/link/exist', (req, res, next) => {
     let url = req.query.url as string
-    console.log(`check if ${url} exist`)
-    let rs = new ResourceStore("localhost:9200", "archive", "info")
+    logger("Web").info(`check if ${url} exist`)
     rs.linkExist(new Link("", url)).then((exist) => {
         if (exist) {
-            console.log(201)
             res.status(201).send("")
         } else {
-            console.log(200)
             res.status(200).send("")
         }
         next()
@@ -83,10 +91,9 @@ app.get('/resources/link/exist', (req, res, next) => {
 
 app.post('/resources/link', (req, res, next) => {
     let body = JSON.parse(req.body.toString()) as any
-    let rs = new ResourceStore("localhost:9200", "archive", "info")
     rs.addLinks([new Link(body.title, body.url, body.favicon)]).then((result) => {
         if (result.get(body.url)) {
-            console.log(`Successful stored ${body.title} <${body.url}>`)
+            logger("Web").info(`Successful stored ${body.title} <${body.url}>`)
             res.status(200).send("")
         } else {
             res.status(500).send("")
@@ -116,7 +123,7 @@ app.get('/resources/search', (req, res, next) => {
             facet[k] = v
         }
     })
-    let rs = new ResourceStore("localhost:9200", "archive", "debug")
+
     rs.search(normalTokens.join(" "), tags, facet, offset, limit).then((views) => {
         res.status(200).send(views)
     })
@@ -124,7 +131,6 @@ app.get('/resources/search', (req, res, next) => {
 
 app.post('/resources/tags', (req, res, next) => {
     let query = JSON.parse(req.body.toString())
-    let rs = new ResourceStore("localhost:9200", "archive", "debug")
     let r = new Resource()
     r.id = query.id
     r.tags = stringArrayToTags(query.tags)
@@ -134,4 +140,28 @@ app.post('/resources/tags', (req, res, next) => {
     })
 })
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.post('/resources/comment', (req, res, next) => {
+    let query = JSON.parse(req.body.toString())    
+    rs.addComment(new Comment(query.content)).then(() => {
+        res.status(200).send()
+        next()
+    }).catch((e) => {
+        logger("Web addComment").error(e)
+        res.status(500).send()
+        next()
+    })
+})
+
+app.post('/resources/article', (req, res, next) => {
+    let query = JSON.parse(req.body.toString())    
+    rs.addArticle(new Article(query.title, query.content)).then(() => {
+        res.status(200).send()
+        next()
+    }).catch((e) => {
+        logger("Web addArticle").error(e)
+        res.status(500).send()
+        next()
+    })
+})
+
+app.listen(port, () => logger("main").info(`Example app listening on port ${port}!`))
