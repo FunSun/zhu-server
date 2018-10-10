@@ -153,15 +153,30 @@ app.post('/resources/comment', (req, res, next) => {
 })
 
 app.post('/resources/article', (req, res, next) => {
-    let query = JSON.parse(req.body.toString())    
-    rs.addArticle(new Article(query.title, query.content)).then(() => {
-        res.status(200).send()
-        next()
-    }).catch((e) => {
-        logger("Web addArticle").error(e)
-        res.status(500).send()
-        next()
-    })
+    let query = JSON.parse(req.body.toString())
+    if (query.id) {
+        let article = new Article(query.title, query.content)
+        article.id = query.id
+        rs.updateArticle(article).then(() => {
+            res.status(200).send()
+            next()
+        }).catch((e) => {
+            logger("Web updateArticle").error(e)
+            res.status(500).send()
+            next()
+        })
+        
+    } else {
+        rs.addArticle(new Article(query.title, query.content)).then(() => {
+            res.status(200).send()
+            next()
+        }).catch((e) => {
+            logger("Web addArticle").error(e)
+            res.status(500).send()
+            next()
+        })
+    
+    }
 })
 
 app.listen(port, () => logger("main").info(`Example app listening on port ${port}!`))

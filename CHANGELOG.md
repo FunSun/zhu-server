@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2018-10-10
+### Added
+- 增加了修改文章的接口
+- 增加了type的shortcut
+### Fixed
+- 添加comment等没有时间的问题
+
 ## [1.7.0] - 2018-10-06
 ###  Added
 - 增加了comment和article类型以及对应的接口

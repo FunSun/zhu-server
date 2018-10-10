@@ -30,6 +30,18 @@ export class ResourceStore {
                 if (k==='from') {
                     return {"match": {"from": v}}
                 }
+                if (k==='t') {
+                    let type:string
+                    switch (v) {
+                        case 'c':
+                        type = "comment"
+                        break
+                        case 'a':
+                        type = "article"
+                        break
+                    }
+                    return {"term": {"type": type}}
+                }
                 return {"term": {[k]: v}} 
             })
             q.push(...facetQ)
@@ -53,6 +65,7 @@ export class ResourceStore {
             }
         })
         return _.map(result.hits.hits, (el) => {
+            logger().debug(el)
             let {fulltext, ...view} = el._source as any
             view.id = el._id
             if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {
@@ -118,7 +131,7 @@ export class ResourceStore {
                 fulltext: comment.content,
                 tags: tagsToStringArray(comment.tags),                
                 type: "comment",
-                created: comment.created
+                created: Date.now()
             }
         })
         logger("service addComment").debug(res)
@@ -134,10 +147,25 @@ export class ResourceStore {
                 fulltext: article.title + " " + article.content,
                 tags: tagsToStringArray(article.tags),
                 type: "article",
-                created: article.created
+                created: Date.now()
             }
         })
         logger("service addArticle").debug(res)
+    }
+
+    async updateArticle(article: Article): Promise<any> {
+        await this.client.update({
+            index: this.index,
+            type: '_doc',
+            id: article.id,
+            body: {
+                doc: {
+                    title: article.title,
+                    content: article.content,
+                    fulltext: article.title + " " + article.content,
+                }
+            }
+        })
     }
 }
 
