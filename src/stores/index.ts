@@ -14,7 +14,7 @@ export class ResourceStore {
     }
 
     async search(query: string, tags:Tag[], facet: {[key:string]:any}, offset:number, limit:number, sort?: string): Promise<Resource[]> {
-        logger("service search").debug(query, tags, facet)
+        logger("service search").debug(query, tags, facet, offset)
 
         let q:any[] = []
         if (query !== "") {
@@ -46,26 +46,28 @@ export class ResourceStore {
             })
             q.push(...facetQ)
         }
-        
+        let body:any = {
+            "query": {
+                "bool": {
+                    "must": q
+                }
+            },
+            "highlight": {
+                "fields": {
+                    "fulltext": {}
+                }
+            },
+            "from": offset,
+            "size": limit,
+        }        
+        if (query==="" && !facet.from) {
+            body['sort'] = [{created: {order: 'desc'}}]
+        }
         let result = await this.client.search({
             index: this.index,
-            body: {
-                "query": {
-                    "bool": {
-                        "must": q
-                    }
-                },
-                "highlight": {
-                    "fields": {
-                        "fulltext": {}
-                    }
-                },
-                "from": offset,
-                "size": limit
-            }
+            body: body
         })
         return _.map(result.hits.hits, (el) => {
-            logger().debug(el)
             let {fulltext, ...view} = el._source as any
             view.id = el._id
             if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {

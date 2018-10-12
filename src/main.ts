@@ -154,6 +154,7 @@ app.post('/resources/comment', (req, res, next) => {
 
 app.post('/resources/article', (req, res, next) => {
     let query = JSON.parse(req.body.toString())
+    logger("Web updateArticle").debug(query)
     if (query.id) {
         let article = new Article(query.title, query.content)
         article.id = query.id

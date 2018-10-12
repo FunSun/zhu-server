@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2018-10-12
+### Added
+- 搜索请求里不包含任何fulltext字段, 那么结果按事件倒序
+
 ## [1.8.0] - 2018-10-10
 ### Added
 - 增加了修改文章的接口
