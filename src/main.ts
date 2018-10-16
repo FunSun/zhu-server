@@ -123,7 +123,7 @@ app.get('/resources/search', (req, res, next) => {
         if (!_.includes(token, ":")) {
             normalTokens.push(token)
         } else if (_.startsWith(token, "tags:")) {
-            tags.push(..._.map(_.split(_.trimStart(token, "tags:"), ","), (o) => {return new Tag(o)}))
+            tags.push(..._.map(_.split(token.replace(/tags:/, ''), ","), (o) => {return new Tag(o)}))
         } else {
             let [k, v] = _.split(token, ":")
             facet[k] = v
