@@ -107,6 +107,12 @@ app.post('/resources/link', (req, res, next) => {
 
 app.get('/resources/search', (req, res, next) => {
     let q = req.query.q as string
+    if (q === 'undefined') {
+        logger("Web search").error("client pass a 'undefined' as a query")
+        res.status(400).send()
+        next()
+        return
+    }
     let offset = req.query.offset?parseInt(req.query.offset as string):0
     let limit = req.query.limit?parseInt(req.query.limit as string):24
     let tokens = _.filter(_.split(q, " "), (o)=> {return !!o}) as string[]

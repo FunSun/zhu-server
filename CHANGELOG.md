@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2018-10-17
+### Fixed
+- 处理搜索请求传入字符串'undefined'的情况
+
 ## [1.9.0] - 2018-10-12
 ### Added
 - 搜索请求里不包含任何fulltext字段, 那么结果按事件倒序
