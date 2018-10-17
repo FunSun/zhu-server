@@ -113,6 +113,14 @@ app.get('/resources/search', (req, res, next) => {
         next()
         return
     }
+    if (q ==='random') {
+        let limit = req.query.limit?parseInt(req.query.limit as string):24
+        rs.randomSearch(limit).then((views) => {
+            res.status(200).send(views)
+            next()
+        })
+        return
+    }
     let offset = req.query.offset?parseInt(req.query.offset as string):0
     let limit = req.query.limit?parseInt(req.query.limit as string):24
     let tokens = _.filter(_.split(q, " "), (o)=> {return !!o}) as string[]
@@ -132,6 +140,7 @@ app.get('/resources/search', (req, res, next) => {
 
     rs.search(normalTokens.join(" "), tags, facet, offset, limit).then((views) => {
         res.status(200).send(views)
+        next()
     })
 })
 

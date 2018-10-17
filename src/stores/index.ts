@@ -77,6 +77,35 @@ export class ResourceStore {
         })
     }
 
+    async randomSearch(limit: number):Promise<Resource[]> {
+        let body = {
+            "size": limit,
+            "query": {
+               "function_score": {
+                  "functions": [
+                     {
+                        "random_score": {
+                           "seed": Date.now()
+                        }
+                     }
+                  ]
+               }
+            }
+        }
+        let result = await this.client.search({
+            index: this.index,
+            body: body
+        })
+        return _.map(result.hits.hits, (el) => {
+            let {fulltext, ...view} = el._source as any
+            view.id = el._id
+            if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {
+                view.highlight = el.highlight.fulltext[0]
+            }
+            return view
+        })
+    }
+
     async addLinks(links: Link[]): Promise<Map<string, boolean>> {
         _.sortBy(links, (o) => {return o.id})
         let data = _.flatten(_.map(links, (link) => {

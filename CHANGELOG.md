@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2018-10-17
+### Added
+- 增加了随机搜索的api
+
 ## [1.9.2] - 2018-10-17
 ### Fixed
 - 修复了因为错误使用`_.trimStart`导致的tag缺失头部的问题
