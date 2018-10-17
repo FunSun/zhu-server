@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2018-10-17
+### Added
+- 允许增加链接的时候传入标签
+
 ## [1.10.0] - 2018-10-17
 ### Added
 - 增加了随机搜索的api

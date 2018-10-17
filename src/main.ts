@@ -91,7 +91,9 @@ app.get('/resources/link/exist', (req, res, next) => {
 
 app.post('/resources/link', (req, res, next) => {
     let body = JSON.parse(req.body.toString()) as any
-    rs.addLinks([new Link(body.title, body.url, body.favicon)]).then((result) => {
+    let tags = stringArrayToTags((body.tags) || [])
+    
+    rs.addLinks([new Link(body.title, body.url, body.favicon, tags)]).then((result) => {
         if (result.get(body.url)) {
             logger("Web").info(`Successful stored ${body.title} <${body.url}>`)
             res.status(200).send("")
