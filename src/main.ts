@@ -1,5 +1,6 @@
 // logger as a builtin
 import {replaceConsoleLog} from './logger'
+
 replaceConsoleLog()
 
 import * as express from 'express'
@@ -93,13 +94,9 @@ app.post('/resources/link', (req, res, next) => {
     let body = JSON.parse(req.body.toString()) as any
     let tags = stringArrayToTags((body.tags) || [])
     
-    rs.addLinks([new Link(body.title, body.url, body.favicon, tags)]).then((result) => {
-        if (result.get(body.url)) {
-            logger("Web").info(`Successful stored ${body.title} <${body.url}>`)
-            res.status(200).send("")
-        } else {
-            res.status(500).send("")
-        }
+    rs.addLink(new Link(body.title, body.url, body.favicon, tags)).then((result) => {
+        logger("Web").info(`Successful stored ${body.title} <${body.url}>`)
+        res.status(200).send("")
         next()
     }).catch(() => {
         res.status(500).send("")
@@ -115,32 +112,42 @@ app.get('/resources/search', (req, res, next) => {
         next()
         return
     }
-    if (q ==='random') {
-        let limit = req.query.limit?parseInt(req.query.limit as string):24
-        rs.randomSearch(limit).then((views) => {
-            res.status(200).send(views)
-            next()
-        })
-        return
-    }
+
     let offset = req.query.offset?parseInt(req.query.offset as string):0
     let limit = req.query.limit?parseInt(req.query.limit as string):24
     let tokens = _.filter(_.split(q, " "), (o)=> {return !!o}) as string[]
     let normalTokens:string[] = []
     let tags: Tag[] = []
     let facet:{[key:string]:string} = {}
+    let safe = false
+    let random = false
     _.each(tokens, (token)=> {
-        if (!_.includes(token, ":")) {
-            normalTokens.push(token)
-        } else if (_.startsWith(token, "tags:")) {
+        if (_.startsWith(token, "tags:")) {
             tags.push(..._.map(_.split(token.replace(/tags:/, ''), ","), (o) => {return new Tag(o)}))
-        } else {
+        } else if (_.includes(token, ":")) {
             let [k, v] = _.split(token, ":")
             facet[k] = v
+        } else if (_.startsWith(token, "_")) {
+            if (token === '_safe') {
+                safe = true
+            } else if (token === '_random') {
+                random = true
+            } else {
+                logger("Web search").error("Unrecognized search option: ", token)
+            }
+        } else {
+            normalTokens.push(token)
         }
     })
 
-    rs.search(normalTokens.join(" "), tags, facet, offset, limit).then((views) => {
+    rs.search({
+        fulltext: normalTokens.join(" "),
+        tags: tags,
+        facet: facet, 
+        offset,
+        limit,
+        magic: {safe, random}
+    }).then((views) => {
         res.status(200).send(views)
         next()
     })
@@ -195,6 +202,19 @@ app.post('/resources/article', (req, res, next) => {
         })
     
     }
+})
+
+app.delete('/resources', (req, res, next) => {
+    let query = req.query
+    logger("Web deleteResource").debug(query)
+    if (!query.id) {
+        res.status(400).send()
+        next()
+        return
+    }
+    rs.deleteResource(query.id)
+    res.status(200).send()
+    next()
 })
 
 app.listen(port, () => logger("main").info(`Example app listening on port ${port}!`))

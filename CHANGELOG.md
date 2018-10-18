@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2018-10-18
+### Added
+- 删除接口
+- 增加了隐藏功能
+- 所有接口对deleted敏感
+### Changed
+- 重构search部分代码
+
 ## [1.11.0] - 2018-10-17
 ### Added
 - 允许增加链接的时候传入标签

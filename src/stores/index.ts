@@ -2,6 +2,142 @@ import { Tag, Resource, Link, Types, Comment, Article } from '../models'
 import * as elasticsearch from 'elasticsearch'
 import * as _ from 'lodash'
 
+export interface SearchQuery {
+    fulltext: string,
+    tags: Tag[],
+    offset: number,
+    limit: number,
+    facet: {[key:string]: any},
+    magic: {[key:string]: any}
+}
+
+function randomScoreQ(q:any) {
+    return {
+        "function_score": {
+            "query": q,
+            "functions": [{
+               "random_score": {
+                    "seed": Date.now()
+                }
+            }]
+        }
+    }
+}
+
+function fulltextQ(q:string) {
+    if (q === "") {
+        return null
+    }
+    return {
+        "must": { "match": {"fulltext": q}}
+    }
+}
+
+function tagsQ(tags: Tag[]) {
+    if (tags.length === 0) {
+        return null
+    }
+    return {
+        "must": {"terms": {"tags": _.map(tags, (o) => {return o.name})}}
+    }
+}
+
+function facetsQ(facets:{[key:string]:any}) {
+    let q:any[] = []
+    let res = _.map(facets, (v, k) => {
+        let inner:any
+        if (k==='from') {
+            inner = {"match": {"from": v}}
+        }
+        if (k==='t') {
+            let type:string
+            switch (v) {
+                case 'c':
+                type = "comment"
+                break
+                case 'a':
+                type = "article"
+                break
+            }
+            inner = {"term": {"type": type}}
+        } else {
+            inner = {"term": {[k]: v}}
+        }
+        return {"must":  inner}
+    })
+    q.push(...res)
+    if (q.length === 0) {
+        return null
+    }
+    return q
+}
+
+function notExistQ(field: string) {
+    return {
+        "must_not": {
+            "exists": {
+                "field": field
+            }
+        }
+    }
+}
+
+function orderQ (field:string, asc:string) {
+    return {[field]: {order: asc}}
+}
+
+function combineQ(...args: any[]):any {
+    let flatten: any = []
+    _.each(args, (arg) => {
+        if (_.isNull(arg)) {
+            return
+        }
+        if (_.isArray(arg) && arg.length === 0) {
+            return
+        }
+        if (_.isArray(arg)) {
+            flatten.push(...arg)
+            return
+        }
+        flatten.push(arg)
+    })
+    let must: any[] = []
+    let mustNot: any[] = []
+    _.each(flatten, (o) => {
+        if (o.must) {
+            must.push(o.must)
+        } else {
+            mustNot.push(o.must_not)
+        }
+    })
+    let bool:any = {}
+    if (must.length>0) {
+        bool["must"] = must
+    }
+    if (mustNot.length>0) {
+        bool["must_not"] = mustNot
+    }
+    return {
+        bool: bool
+    }
+}
+
+function haveScore(q:any) {
+    let serial = JSON.stringify(q)
+    return _.includes(serial, '"match":') || _.includes(serial, '"function_score":')
+}
+
+function makeViews(data:any[]) {
+    return _.map(data, (el) => {
+        let {fulltext, ...view} = el._source as any
+        view.id = el._id
+        if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {
+            view.highlight = el.highlight.fulltext[0]
+        }
+        return view
+    })
+}
+
 export class ResourceStore {
     client: elasticsearch.Client
     index: string
@@ -13,97 +149,56 @@ export class ResourceStore {
         this.index = index
     }
 
-    async search(query: string, tags:Tag[], facet: {[key:string]:any}, offset:number, limit:number, sort?: string): Promise<Resource[]> {
-        logger("service search").debug(query, tags, facet, offset)
-
-        let q:any[] = []
-        if (query !== "") {
-            let mainQ = { "match": {"fulltext": query}}    
-            q.push(mainQ)
-        }
-        if (tags && tags.length > 0) {
-            let tagQ = {"terms": {"tags": _.map(tags, (o) => {return o.name})}}
-            q.push(tagQ)
-        }
-        if (facet && _.keys(facet).length > 0) {
-            let facetQ = _.map(facet, (v, k) => {
-                if (k==='from') {
-                    return {"match": {"from": v}}
-                }
-                if (k==='t') {
-                    let type:string
-                    switch (v) {
-                        case 'c':
-                        type = "comment"
-                        break
-                        case 'a':
-                        type = "article"
-                        break
-                    }
-                    return {"term": {"type": type}}
-                }
-                return {"term": {[k]: v}} 
-            })
-            q.push(...facetQ)
+    async search(query: SearchQuery) {
+        logger("search").debug(JSON.stringify(query))
+        let q = combineQ(
+            fulltextQ(query.fulltext),
+            tagsQ(query.tags),
+            facetsQ(query.facet),
+            notExistQ("deleted")
+        )    
+        if (query.magic["random"]) {
+            q = randomScoreQ(q)
         }
         let body:any = {
-            "query": {
-                "bool": {
-                    "must": q
-                }
-            },
+            "query": q,
             "highlight": {
                 "fields": {
                     "fulltext": {}
                 }
             },
-            "from": offset,
-            "size": limit,
-        }        
-        if (query==="" && !facet.from) {
-            body['sort'] = [{created: {order: 'desc'}}]
+            "from": query.offset,
+            "size": query.limit,
+        }
+        if (!haveScore(q)) {
+            body['sort'] =  orderQ('created', 'desc')
         }
         let result = await this.client.search({
             index: this.index,
             body: body
         })
-        return _.map(result.hits.hits, (el) => {
-            let {fulltext, ...view} = el._source as any
-            view.id = el._id
-            if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {
-                view.highlight = el.highlight.fulltext[0]
-            }
-            return view
-        })
+        logger("search").debug(JSON.stringify(body))
+        let views =  makeViews(result.hits.hits) 
+        if (!query.magic['safe']) {
+            views = _.filter(views, (view) => {
+                return !_.includes(view.tags, 'NSFW')
+            })
+        }
+        return views
     }
 
-    async randomSearch(limit: number):Promise<Resource[]> {
-        let body = {
-            "size": limit,
-            "query": {
-               "function_score": {
-                  "functions": [
-                     {
-                        "random_score": {
-                           "seed": Date.now()
-                        }
-                     }
-                  ]
-               }
-            }
-        }
-        let result = await this.client.search({
+    async deleteResource(id:string): Promise<boolean> {
+        await this.client.update({
             index: this.index,
-            body: body
-        })
-        return _.map(result.hits.hits, (el) => {
-            let {fulltext, ...view} = el._source as any
-            view.id = el._id
-            if (el.highlight && el.highlight.fulltext && el.highlight.fulltext.length > 0) {
-                view.highlight = el.highlight.fulltext[0]
+            type: '_doc',
+            id: id,
+            body: {
+              doc: {
+                deleted: Date.now()
+              }
             }
-            return view
         })
+        return true
     }
 
     async addLinks(links: Link[]): Promise<Map<string, boolean>> {
@@ -131,13 +226,42 @@ export class ResourceStore {
         }, new Map<string, boolean>())
     }
 
-    async linkExist(link:Link): Promise<boolean> {
-        let res = await this.client.exists({
+    async addLink(link: Link): Promise<void> {
+        let res = await this.client.index({
             index: this.index,
             type: '_doc',
-            id: link.id
+            id: link.id,
+            body: {
+                from: link.from,
+                title: link.title,
+                tags: tagsToStringArray(link.tags),
+                fulltext: link.title,
+                type: Types.Link,
+                favicon: link.favicon,
+                created: Date.now(),
+                deleted: null
+            }
         })
-        return res
+        logger("add Link").debug(res)
+    }
+
+    async linkExist(link:Link): Promise<boolean> {
+        try {
+            let res = await this.client.get({
+                index: this.index,
+                type: '_doc',
+                id: link.id
+            })
+            if ((res._source as any).deleted) {
+                logger("link exists: ").debug(false)        
+                return false
+            }
+            logger("link exists: ").debug(true)
+            return true
+        } catch (e) {
+            logger("link exists: ").debug(false)
+            return false
+        }
     }
 
     async updateTags(resouce: Resource):Promise<any> {
