@@ -1,4 +1,4 @@
-import { Tag, Resource, Link, Types, Comment, Article } from '../models'
+import { Tag, Resource, Link, Types, Comment, Article, Blog } from '../models'
 import * as elasticsearch from 'elasticsearch'
 import * as _ from 'lodash'
 
@@ -321,6 +321,24 @@ export class ResourceStore {
                 }
             }
         })
+    }
+    
+    async addBlog(blog:Blog): Promise<any> {
+        let res = await this.client.index({
+            index: this.index,
+            type: "_doc",
+            id: blog.id,
+            body: {
+                title: blog.title,
+                content: blog.content,
+                fulltext: blog.title + " " + blog.fultext,
+                from: blog.from,
+                tags: tagsToStringArray(blog.tags),
+                type: "blog",
+                created: Date.now(),
+            }
+        })
+        logger("Add blog").debug(JSON.stringify(res))
     }
 }
 

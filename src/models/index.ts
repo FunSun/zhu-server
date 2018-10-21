@@ -28,13 +28,24 @@ export class FamousResource extends Resource {
     from: string
 }
 
-export class ArchivedResource implements FamousResource {
+export class Blog implements FamousResource {
     id: string
     tags: Tag[]
     created: Date
     from: string    
     title: string
     content: string
+    fultext: string
+
+    constructor(title:string, url: string, content:string, fulltext:string, tags?:Tag[]) {
+        this.title = title
+        this.from = url
+        this.tags = tags?tags:[]
+        this.content = content
+        this.fultext = fulltext
+        this.id = hashCode(this.from)        
+        this.created = new Date()
+    }
 }
 
 export class Link implements FamousResource {
@@ -54,8 +65,6 @@ export class Link implements FamousResource {
         this.created = new Date()
     }
 }
-
-export class ZhihuAnswer extends ArchivedResource {}
 
 export class Comment extends Resource {
     constructor(content:string, tags?:Tag[]) {

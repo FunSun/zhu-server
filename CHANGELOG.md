@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2018-10-21
+### Added
+- 增加了剪裁接口
+
 ## [1.12.0] - 2018-10-18
 ### Added
 - 删除接口
