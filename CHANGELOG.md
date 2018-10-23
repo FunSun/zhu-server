@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] 2018-10-23
+### Added
+- 增加了docker支持
+### Changed
+- 更改了项目名称
+
 ## [1.13.0] - 2018-10-21
 ### Added
 - 增加了剪裁接口

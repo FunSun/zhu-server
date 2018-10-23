@@ -10,11 +10,15 @@ import * as _ from 'lodash'
 import { stringArrayToTags } from './lib'
 import { ResourceStore } from './stores'
 import { Resource, Link, Tag, Comment, Article, Blog } from './models'
+import * as path from 'path'
 
 
 let rs = new ResourceStore("localhost:9200", "archive", "error")
 
 const app = express()
+
+app.use('/ui', express.static(path.join(__dirname, 'ui')))
+
 app.use((req, res, next) => {
     next()
     logger("Web").info(req.path, res.statusCode)
