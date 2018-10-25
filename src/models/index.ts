@@ -86,6 +86,6 @@ export class Article extends Resource {
     content: string
 }
 
-function hashCode(s: string): string {
+export function hashCode(s: string): string {
     return crypto.createHash('md5').update(s).digest('base64')
 }

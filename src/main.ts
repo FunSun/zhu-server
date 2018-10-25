@@ -30,46 +30,6 @@ app.use(bodyParser.raw({
     type: '*/*'
 }))
 app.use(cors())
-const port = 8070
-
-// TODO: 把内容里的所有文本节点抽取出来放到fulltext字段里
-// TODO: 处理 keyword
-// function processWebArticle(type:any, req:any, res:any, next:any) {
-//     let requestBody = req.body.toString().split('\n')
-//     let from = requestBody[0]
-//     let title = requestBody[1]
-//     let tags =  requestBody[2].split(',')
-//     let content = requestBody.slice(3).join('\n')
-//     let dom = new JSDOM(content)
-//     let allText = _.filter(getAllText(dom), (el)=> {
-//         if (_.startsWith(el, '<img ')) {
-//             return false
-//         }
-//         return true
-//     })
-//     let fulltext = title + ' ' + allText.join(' ')
-//     let client = new elasticsearch.Client({
-//         host: 'localhost:9200',
-//         log: 'info'
-//     })
-
-//     client.index({
-//         index: 'archive',
-//         type: '_doc',
-//         body: {
-//             from: from,
-//             content: content,
-//             title: title,
-//             fulltext: fulltext,
-//             tags: tags,
-//             type: type,
-//             created: Date.now()
-//         }
-//     }).then(() => {
-//         res.status(200).send("发送成功")
-//         next()
-//     })
-// }
   
 app.post('/resources/blog', (req, res, next) => {
     let body = JSON.parse(req.body.toString()) as any
@@ -157,6 +117,8 @@ app.get('/resources/search', (req, res, next) => {
     }).then((views) => {
         res.status(200).send(views)
         next()
+    }).catch((err:Error) => {
+        res.status(500).send(err.message)
     })
 })
 
@@ -224,4 +186,51 @@ app.delete('/resources', (req, res, next) => {
     next()
 })
 
+app.put('/backups', (req, res, next) => {
+    rs.backup().then((backup) => {
+        res.status(200).send(backup)
+        next()
+    }).catch((err:Error)=>{
+        res.status(500).send(err.message)
+        next()
+    })
+})
+
+
+app.get('/backups', (req, res, next) => {
+    rs.getBackups().then((backups) => {
+        res.status(200).send(backups)
+        next()
+    }).catch((err:Error)=>{
+        res.status(500).send(err.message)
+        next()
+    })
+})
+
+app.delete('/backups', (req, res, next) => {
+    let id = req.query.id
+    rs.deleteBackup(id).then(() => {
+        res.status(200).send()
+        next()
+    }).catch((err:Error)=>{
+        res.status(500).send(err.message)
+        next()
+    })
+})
+
+app.post('/restore', (req, res, next) => {
+    let id = req.query.id
+    rs.restore(id).then((ret) => {
+        res.status(200).send(ret)
+        next()
+    }).catch((err:Error)=>{
+        res.status(500).send(err.message)
+        next()
+    })
+})
+
+
+rs.init()
+
+let port = parseInt(process.argv[process.argv.length-1])
 app.listen(port, () => logger("main").info(`Example app listening on port ${port}!`))
