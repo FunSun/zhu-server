@@ -101,6 +101,7 @@ export class ResourceStore {
             created: Date.now()
         })
         logger("service addArticle").debug(res)
+        return {id: res._id}
     }
 
     async updateArticle(article: Article): Promise<any> {
@@ -109,7 +110,7 @@ export class ResourceStore {
             content: article.content,
             fulltext: article.title + " " + article.content,
         }
-        await this.client.update(article.id, body)
+        return await this.client.update(article.id, body)
     }
     
     async addBlog(blog:Blog): Promise<any> {

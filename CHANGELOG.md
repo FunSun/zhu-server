@@ -6,14 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.15.0] 2018-10-26
+## [1.15.1] - 2018-10-27
+### Fixed
+- 修复了增加article没有返回的问题
+
+## [1.15.0] - 2018-10-26
 ### Added
 - 在store和esclient之间增加client中间层, 处理启动时es初始化一段时间无法访问的问题
 - 新安装的实例自动初始化es数据结构
 - 增加了备份和恢复接口
 - 将打包到docker的配置文件一并加入版本管理
 
-## [1.14.0] 2018-10-23
+## [1.14.0] - 2018-10-23
 ### Added
 - 增加了docker支持
 ### Changed

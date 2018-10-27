@@ -151,8 +151,8 @@ app.post('/resources/article', (req, res, next) => {
     if (query.id) {
         let article = new Article(query.title, query.content)
         article.id = query.id
-        rs.updateArticle(article).then(() => {
-            res.status(200).send()
+        rs.updateArticle(article).then((data) => {
+            res.status(200).send(data)
             next()
         }).catch((e) => {
             logger("Web updateArticle").error(e)
@@ -161,8 +161,8 @@ app.post('/resources/article', (req, res, next) => {
         })
         
     } else {
-        rs.addArticle(new Article(query.title, query.content)).then(() => {
-            res.status(200).send()
+        rs.addArticle(new Article(query.title, query.content)).then((data) => {
+            res.status(200).send(data)
             next()
         }).catch((e) => {
             logger("Web addArticle").error(e)
