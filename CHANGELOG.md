@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.2] - 2018-11-7
+### Fixed
+- 修复了一些package-lock里的不安全依赖
+
 ## [1.15.1] - 2018-10-27
 ### Fixed
 - 修复了增加article没有返回的问题

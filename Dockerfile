@@ -13,7 +13,7 @@ RUN cd /app && npm --registry=https://registry.npm.taobao.org install --producti
 ADD ./build /app
 ADD docker/ui /app/ui
 
-VOLUME ["/usr/share/elasticsearch/data", "/backups"]
+VOLUME ["/usr/share/elasticsearch/data"]
 
 EXPOSE 9200 8070
 
