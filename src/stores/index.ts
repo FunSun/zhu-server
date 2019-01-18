@@ -1,4 +1,4 @@
-import { Tag, Resource, Link, Types, Comment, Article, Blog } from '../models'
+import { Tag, Resource, Link, Types, Comment, Article, Blog, Snippet } from '../models'
 import * as _ from 'lodash'
 import Client from './client'
 import {searchResource, deleteResource, updateTags, SearchQuery} from './general'
@@ -89,6 +89,17 @@ export class ResourceStore {
             created: Date.now()
         })
         logger("service addComment").debug(res)
+    }
+
+    async addSnippet(snippet: Snippet):Promise<any> {
+        let res = await this.client.create({
+            content: snippet.content,
+            fulltext: snippet.content,
+            tags: tagsToStringArray(snippet.tags),                
+            type: "snippet",
+            created: Date.now()
+        })
+        logger("service addSnippet").debug(res)
     }
 
     async addArticle(article:Article): Promise<any> {

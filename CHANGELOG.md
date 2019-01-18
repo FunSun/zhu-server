@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2019-1-19
+### Added
+- 增加了snippet相关接口
+
 ## [1.15.2] - 2018-11-7
 ### Fixed
 - 修复了一些package-lock里的不安全依赖

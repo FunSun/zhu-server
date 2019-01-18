@@ -9,7 +9,7 @@ import * as cors from 'cors'
 import * as _ from 'lodash'
 import { stringArrayToTags } from './lib'
 import { ResourceStore } from './stores'
-import { Resource, Link, Tag, Comment, Article, Blog } from './models'
+import { Resource, Link, Tag, Comment, Article, Blog, Snippet } from './models'
 import * as path from 'path'
 
 
@@ -140,6 +140,18 @@ app.post('/resources/comment', (req, res, next) => {
         next()
     }).catch((e) => {
         logger("Web addComment").error(e)
+        res.status(500).send()
+        next()
+    })
+})
+
+app.post('/resources/snippet', (req, res, next) => {
+    let query = JSON.parse(req.body.toString())    
+    rs.addSnippet(new Snippet(query.content, query.tags)).then(() => {
+        res.status(200).send()
+        next()
+    }).catch((e) => {
+        logger("Web addSnippet").error(e)
         res.status(500).send()
         next()
     })

@@ -86,6 +86,15 @@ export class Article extends Resource {
     content: string
 }
 
+export class Snippet extends Resource {
+    constructor(content:string, tags?:Tag[]) {
+        super()
+        this.content = content
+        this.tags = tags || []
+    }
+    content: string
+}
+
 export function hashCode(s: string): string {
     return crypto.createHash('md5').update(s).digest('base64')
 }
