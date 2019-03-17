@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2019-3-17
+### Changed
+- 更改了add snippet接口
+- 增加了update snippet接口
+
 ## [1.16.1] - 2019-3-3
 ### Fixed
 - 改变Dockerfile中依赖的es-ik插件版本

@@ -91,7 +91,7 @@ export class ResourceStore {
         logger("service addComment").debug(res)
     }
 
-    async addSnippet(snippet: Snippet):Promise<any> {
+    async addSnippet(snippet: Snippet):Promise<string> {
         let res = await this.client.create({
             content: snippet.content,
             fulltext: snippet.content,
@@ -100,6 +100,15 @@ export class ResourceStore {
             created: Date.now()
         })
         logger("service addSnippet").debug(res)
+        return res["_id"]
+    }
+
+    async updateSnippet(snippet: Snippet): Promise<string> {
+        let body = {
+            content: snippet.content,
+            fulltext: snippet.content,
+        }
+        return await this.client.update(snippet.id, body)
     }
 
     async addArticle(article:Article): Promise<any> {

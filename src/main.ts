@@ -145,9 +145,23 @@ app.post('/resources/comment', (req, res, next) => {
     })
 })
 
-app.post('/resources/snippet', (req, res, next) => {
+app.post('/resources/snippet/add', (req, res, next) => {
     let query = JSON.parse(req.body.toString())    
-    rs.addSnippet(new Snippet(query.content, query.tags)).then(() => {
+    rs.addSnippet(new Snippet(query.content, query.tags)).then((id:string) => {
+        res.status(200).send({"id": id})
+        next()
+    }).catch((e) => {
+        logger("Web addSnippet").error(e)
+        res.status(500).send()
+        next()
+    })
+})
+
+app.post('/resources/snippet/update', (req, res, next) => {
+    let query = JSON.parse(req.body.toString())
+    let snippet = new Snippet(query.content, stringArrayToTags([]))
+    snippet.id = query.id
+    rs.updateSnippet(snippet).then(() => {
         res.status(200).send()
         next()
     }).catch((e) => {
