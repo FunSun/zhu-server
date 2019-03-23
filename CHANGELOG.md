@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2019-3-24
+### Changed
+- 废弃此项目
+
 ## [2.0.0] - 2019-3-17
 ### Changed
 - 更改了add snippet接口
